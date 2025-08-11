@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat básico</title>
+</head>
+<body style="background-color: black; color: white;"> 
+<h1>Chatbot</h1>
+
+<div id="chatbox" style="border:1px solid #ccc; height:200px; overflow-y:auto; padding:5px;"></div>
+
+<form id="chatForm">
+    {% csrf_token %}
+    <input id="message" placeholder="Escribe un mensaje" required>
+    <button>Enviar</button>
+</form>
+
+<script>
+const form = document.getElementById('chatForm');
+const chatbox = document.getElementById('chatbox');
+const input = document.getElementById('message');
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = input.value;
+    chatbox.innerHTML += `<p><b>Tú:</b> ${msg}</p>`;
+    input.value = '';
+
+    const res = await fetch('/api/chatbot/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ message: msg })
+    });
+
+    const data = await res.json();
+    chatbox.innerHTML += `<p><b>Bot:</b> ${data.reply}</p>`;
+    chatbox.scrollTop = chatbox.scrollHeight;
+});
+</script>
+</body>
+</html>
