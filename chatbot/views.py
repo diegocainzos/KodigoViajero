@@ -1,7 +1,8 @@
 from django.http import JsonResponse
 from django.views.generic import TemplateView
 import json
-from .services import text_inference
+from .services.chatbot_api_service import text_inference
+from .services.nlp_service import extract_tourism_info
 from .models import Destinations
 class ChatPageView(TemplateView):
     template_name = "home.html"
@@ -26,5 +27,4 @@ def chatbot_api(request):
         choice_0 = data["choices"][0]["message"]["content"]
 
         return JsonResponse({"reply": f"Bot dice: {choice_0}"})
-
-
+    

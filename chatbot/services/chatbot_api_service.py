@@ -1,8 +1,13 @@
 import os
 import requests
 import spacy 
+from django.http import JsonResponse
 
-HF_TOKEN = "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"
+# Get token from environment variable for security
+HF_TOKEN = os.environ.get('HF_TOKEN')
+if not HF_TOKEN:
+    raise ValueError("HF_TOKEN environment variable is required. Please set it before running the application.")
+
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 
 def text_inference(prompt):
@@ -19,9 +24,4 @@ def text_inference(prompt):
 
     return requests.post(API_URL, headers=headers, json=payload)
 # print(response.json()["choices"][0]["message"])
-
-nlp = spacy.load('en_core_web_md')
-
-def text_processing(promt):
-    doc = nlp(promt)
     
