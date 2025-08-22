@@ -37,32 +37,20 @@ def hotel_query(params):
       return "No se encontraron hoteles para la búsqueda especificada."
 
     # Build the formatted string
+    hoteles_encontrados = []
     hotel_info_string = f"Se encontraron {len(lista_hoteles)} hoteles:\n\n"
+    for hotel in lista_hoteles:
+        info_hotel = {
+            "nombre": hotel.get("name"),
+            "precio": hotel.get("rate_per_night", {}).get("lowest"),
+            "puntuacion": hotel.get("overall_rating"),
+            "total_opiniones": hotel.get("reviews"),
+            "descripcion": hotel.get("description"),
+            "enlace_google": hotel.get("link")
+        }
+        hoteles_encontrados.append(info_hotel)
 
-    for i, hotel in enumerate(lista_hoteles, 1):
-      nombre = hotel.get("name", "Nombre no disponible")
-      precio = hotel.get("rate_per_night", {}).get(
-        "lowest", "N/A"
-      )
-  
-      puntuacion = hotel.get("overall_rating", "N/A")
-      total_opiniones = hotel.get("reviews", "N/A")
-      descripcion = hotel.get("description", "Descripción no disponible")
-      enlace = hotel.get("link", "Enlace no disponible")
-
-      # Format price display
-
-      hotel_info_string += f"""🏨 Hotel #{i}: {nombre}
-💰 Precio: {precio}
-⭐ Puntuación: {puntuacion} ({total_opiniones} opiniones)
-📝 Descripción: {descripcion}
-🔗 Enlace: {enlace}
-
-{"="*50}
-
-"""
-
-    return hotel_info_string.strip()
+    return hoteles_encontrados
 
   except Exception as e:
     return f"Ha ocurrido una excepción: {str(e)}"
