@@ -20,15 +20,32 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+# This ensures that the .env file at the project root is loaded.
+dotenv_path = BASE_DIR / '.env'
+load_dotenv(dotenv_path=dotenv_path)
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+# Load tokens from environment
+SERPI_TOKEN = os.getenv('SERPAPI')
+HF_TOKEN = os.getenv('HF_TOKEN')
+
+# Validate that tokens are present
+if not HF_TOKEN:
+    raise ValueError(
+        "HF_TOKEN environment variable is required. Please set it in your .env file.")
+if not SERPI_TOKEN:
+    raise ValueError(
+        "SERPAPI environment variable is required. Please set it in your .env file.")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-c9w-zrdwc-fle*em)8(nta@061z-j3y#80q5q-97co0qp_y_82"
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = os.getenv(
+    'SECRET_KEY', 'django-insecure-c9w-zrdwc-fle*em)8(nta@061z-j3y#80q5q-97co0qp_y_82')
 
 ALLOWED_HOSTS = []
 

@@ -1,30 +1,42 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.generic import TemplateView
 import json
-from .services.chatbot_api_service import text_inference
+from .services.orquestrator import procesar_mensaje_usuario
 from .services.nlp_service import extract_tourism_info
 from .models import Destinations
+
+
+class HtmxPageView(TemplateView):
+    template_name = "htmlx.html"
+
+
 class ChatPageView(TemplateView):
-    template_name = "home.html"
+    template_name = "chatbot.html"
 
-
-def get_fake_flight(destination):
-    return {"from": "BCN", "to": destination, "price": "120 EUR"}
 
 def chatbot_api(request):
     if request.method == "POST":
-        data = json.loads(request.body)
-        msg = data.get("message", "")
-        if "Prague" in msg:
-            destination = "Prague"
-            days = 3
-            return JsonResponse({"reply" : get_fake_flight(destination).get("to")}) 
-        
-        reply = text_inference(msg)
-    
+        # Soporta HTMX form (request.POST) y JSON
+        msg = request.POST.get("message")
+        if msg is None:
+            try:
+                body = json.loads(request.body or "{}")
+            except json.JSONDecodeError:
+                body = {}
+            msg = body.get("message", "")
 
-        data = reply.json()
-        choice_0 = data["choices"][0]["message"]["content"]
+        reply = procesar_mensaje_usuario(msg)
+        print(reply, type(reply))
 
-        return JsonResponse({"reply": f"Bot dice: {choice_0}"})
-    
+        # Si viene de HTMX devolvemos un fragmento HTML con el textarea actualizado
+        if request.headers.get("HX-Request") == "true":
+            user_message = request.POST.get("message", "")
+            respuesta = procesar_mensaje_usuario(user_message)
+
+            # Formatear con saltos de línea para añadir al historial
+            formatted_message = f"\nTú: {user_message}\nBot: {respuesta}\n"
+
+            return HttpResponse(formatted_message)
+
+        # API normal JSON
+        return JsonResponse({"reply": str(reply)})

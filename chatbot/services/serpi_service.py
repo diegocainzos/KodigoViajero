@@ -1,6 +1,11 @@
 from serpapi import GoogleSearch
 import os
-SERPI_TOKEN = os.environ.get('SERPAPI')
+from dotenv import load_dotenv
+
+
+load_dotenv()
+SERPI_TOKEN = os.getenv("SERPAPI")
+
 
 # Update the params to use the environment variable
 """"

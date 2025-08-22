@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Travel Compass · Chat</title>
+
+    <!-- Fonts: Poppins (UI), Anton (display titles) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Optional Markdown + Sanitizer -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+
+    <style>
+        :root {
+            --turquoise: #15c8c4;
+            --coral: #ff7f50;
+            --forest: #2e7d32;
+            --deep: #0a1a1a;
+            --glass: rgba(255, 255, 255, .16);
+            --glass-strong: rgba(255, 255, 255, .22);
+            --text: #0f1b1b;
+            --on-glass: #102020;
+            --on-dark: #f0f7f6;
+            --card-shadow: 0 12px 35px rgba(0, 0, 0, .18);
+            --soft-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+            --radius: 16px;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            color: var(--on-dark);
+            font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(120deg, var(--turquoise), var(--coral), var(--forest));
+            background-size: 200% 200%;
+            animation: gradientFlow 18s ease infinite;
+        }
+
+        @keyframes gradientFlow {
+            0% {
+                background-position: 0% 50%
+            }
+
+            50% {
+                background-position: 100% 50%
+            }
+
+            100% {
+                background-position: 0% 50%
+            }
+        }
+
+        /* Subtle grid + silhouettes */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1
+        }
+
+        .bg-canvas::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: .12;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, .25) 0 2px, transparent 3px 100%),
+                radial-gradient(circle at 90% 15%, rgba(255, 255, 255, .18) 0 2px, transparent 3px 100%);
+            filter: blur(1px);
+        }
+
+        .bg-canvas::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: .08;
+            background:
+                repeating-linear-gradient(to right, rgba(255, 255, 255, .12) 0 1px, transparent 1px 48px),
+                repeating-linear-gradient(to bottom, rgba(255, 255, 255, .12) 0 1px, transparent 1px 48px);
+            mask-image: linear-gradient(to top, transparent 0%, black 20% 80%, transparent 100%);
+        }
+
+        /* Layout */
+        .page {
+            height: 100vh;
+            display: flex;
+            flex-direction: column
+        }
+
+        header {
+            padding: .75rem 0;
+        }
+
+        .header-inner {
+            display: flex;
+            align-items: center;
+            gap: .75rem
+        }
+
+        /* Compass logo */
+        .compass {
+            width: 36px;
+            height: 36px;
+            position: relative
+        }
+
+        .compass .ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, .25), rgba(255, 255, 255, .05));
+            border: 1px solid rgba(255, 255, 255, .35);
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, .15), 0 2px 10px rgba(0, 0, 0, .12)
+        }
+
+        .compass .needle {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 2px;
+            height: 24px;
+            transform: translate(-50%, -50%) rotate(18deg);
+            transform-origin: 50% 80%;
+            background: linear-gradient(180deg, #ffcf91, #f55a2f);
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(255, 127, 80, .6)
+        }
+
+        .compass .tip {
+            position: absolute;
+            left: 50%;
+            top: 7px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 10px solid #ffd8b8
+        }
+
+        .brand {
+            font-family: 'Anton', sans-serif;
+            letter-spacing: .5px;
+            font-size: 1.15rem
+        }
+
+        .brand small {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            opacity: .8;
+            margin-left: .4rem
+        }
+
+        main {
+            flex: 1 1 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem
+        }
+
+        .chat-shell {
+            width: min(100%, 1100px);
+            height: min(86vh, 860px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 14px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, .28);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .10));
+            box-shadow: 0 20px 60px rgba(0, 0, 0, .25), inset 0 0 30px rgba(255, 255, 255, .06);
+            backdrop-filter: blur(18px);
+        }
+
+        .chat-scroll {
+            flex: 1 1 auto;
+            overflow: auto;
+            padding: 10px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px
+        }
+
+        /* Message bubbles */
+        .msg-row {
+            display: flex;
+            gap: 10px
+        }
+
+        .msg-row.user {
+            justify-content: flex-end
+        }
+
+        .bubble {
+            max-width: 72ch;
+            border-radius: 14px;
+            padding: .85rem 1rem;
+            line-height: 1.55;
+            transition: .2s ease all;
+            box-shadow: var(--soft-shadow);
+        }
+
+        .bubble.user {
+            color: #0e2826;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .75), rgba(255, 255, 255, .55));
+            border: 1px solid rgba(255, 255, 255, .65)
+        }
+
+        .bubble.bot {
+            color: #0d2323;
+            background: linear-gradient(180deg, rgba(255, 255, 255, .65), rgba(255, 255, 255, .42));
+            border: 1px solid rgba(255, 255, 255, .5)
+        }
+
+        .bubble:hover {
+            transform: translateY(-1px)
+        }
+
+        .timestamp {
+            font-size: .8rem;
+            opacity: .7;
+            margin-top: .25rem
+        }
+
+        /* Travel postcard card */
+        .postcard {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: .8rem;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, .45);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .82), rgba(255, 255, 255, .6));
+            color: #0b2221;
+            box-shadow: var(--card-shadow)
+        }
+
+        .postcard img {
+            width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .15)
+        }
+
+        .pc-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: .2px
+        }
+
+        .pc-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .75rem;
+            margin-top: .35rem
+        }
+
+        .pc-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            padding: .25rem .5rem;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, .05)
+        }
+
+        .pc-desc {
+            margin-top: .45rem;
+            opacity: .9
+        }
+
+        /* Composer */
+        .composer {
+            display: flex;
+            gap: .6rem;
+            align-items: end;
+            padding: .75rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, .35);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .25), rgba(255, 255, 255, .12));
+            box-shadow: inset 0 0 18px rgba(255, 255, 255, .05)
+        }
+
+        textarea {
+            flex: 1 1 auto;
+            min-height: 48px;
+            max-height: 120px;
+            resize: vertical;
+            border: 0;
+            outline: none;
+            background: transparent;
+            color: var(--on-dark);
+            font: 500 1rem 'Poppins', sans-serif
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, .8)
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 12px;
+            padding: .7rem 1.1rem;
+            font-weight: 600;
+            color: #0c2322;
+            cursor: pointer;
+            transition: .2s ease all
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e9fff9, #c9f7f3)
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.02);
+            transform: translateY(-1px)
+        }
+
+        /* Icons */
+        .icon {
+            width: 18px;
+            height: 18px;
+            display: inline-block
+        }
+
+        .ic-plane {
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230b2221"><path d="M10.18 9l-6.6 6.6a1 1 0 0 0 1.11 1.62l7.98-2.66 3.55 3.55a1 1 0 0 0 1.41-1.41l-3.55-3.55 2.66-7.98a1 1 0 0 0-1.62-1.11L9 10.18l-6.6-1.1a1 1 0 1 0-.33 1.97L10.18 9z"/></svg>') center/contain no-repeat;
+        }
+
+        .ic-pin {
+            background: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230b2221">\
+        <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>\
+      </svg>') center/contain no-repeat
+        }
+
+        .ic-compass {
+            background: url('data:image/svg+xml;utf8,\
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230b2221">\
+        <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm3.7 6.3l-2.24 5.03a1 1 0 0 1-.49.49L7.94 16.1l2.24-5.03a1 1 0 0 1 .49-.49L15.7 8.3z"/>\
+      </svg>') center/contain no-repeat
+        }
+
+        /* Utilities */
+        .container {
+            width: min(100%, 1200px);
+            margin-inline: auto;
+            padding-inline: 16px
+        }
+
+        .sr {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0
+        }
+
+        .fade-in {
+            animation: fade .25s ease
+        }
+
+        @keyframes fade {
+            from {
+                opacity: .0;
+                transform: translateY(4px)
+            }
+
+            to {
+                opacity: 1;
+                transform: none
+            }
+        }
+
+        @media (max-width: 640px) {
+            .postcard {
+                grid-template-columns: 1fr
+            }
+
+            .postcard img {
+                width: 100%;
+                height: 160px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-canvas" aria-hidden="true"></div>
+
+    <div class="page">
+        <header>
+            <div class="container header-inner">
+                <div class="compass" aria-hidden="true">
+                    <div class="ring"></div>
+                    <div class="needle"></div>
+                    <div class="tip"></div>
+                </div>
+                <div class="brand">Travel Compass <small>by KodigoViajero</small></div>
+            </div>
+        </header>
+
+        <main>
+            <section class="chat-shell" aria-label="Ventana de chat">
+                <div id="chat" class="chat-scroll">
+                    <!-- Mensajes se agregan aquí -->
+                </div>
+                <form id="composer" class="composer" autocomplete="off">
+                    {% csrf_token %}
+                    <label class="sr" for="message">Tu mensaje</label>
+                    <textarea id="message" name="message"
+                        placeholder="¿A dónde vamos? Pregunta por hoteles, rutas o consejos…" required></textarea>
+                    <button class="btn btn-primary" type="submit" id="sendBtn">Enviar</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const form = document.getElementById('composer');
+        const input = document.getElementById('message');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function timeNow() {
+            const d = new Date();
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function scrollToBottom() { chat.scrollTop = chat.scrollHeight; }
+
+        function addUserMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'msg-row user fade-in';
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble user';
+            bubble.textContent = text;
+            const ts = document.createElement('div');
+            ts.className = 'timestamp';
+            ts.textContent = timeNow();
+            row.appendChild(bubble);
+            row.appendChild(ts);
+            chat.appendChild(row);
+        }
+
+        function createPostcardCard(data) {
+            const card = document.createElement('div');
+            card.className = 'postcard fade-in';
+            const img = document.createElement('img');
+            img.alt = data.destination || 'Destino';
+            img.src = data.image || `https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop`; // Fallback
+            const body = document.createElement('div');
+            const title = document.createElement('div');
+            title.className = 'pc-title';
+            title.textContent = data.destination || 'Recomendación de viaje';
+            const meta = document.createElement('div');
+            meta.className = 'pc-meta';
+
+            if (data.country) {
+                const tag = document.createElement('span'); tag.className = 'pc-tag';
+                tag.innerHTML = `<span class="icon ic-pin"></span> ${data.country}`;
+                meta.appendChild(tag);
+            }
+            if (data.duration) {
+                const tag = document.createElement('span'); tag.className = 'pc-tag';
+                tag.innerHTML = `<span class="icon ic-compass"></span> ${data.duration}`;
+                meta.appendChild(tag);
+            }
+            if (data.flight) {
+                const tag = document.createElement('span'); tag.className = 'pc-tag';
+                tag.innerHTML = `<span class="icon ic-plane"></span> ${data.flight}`;
+                meta.appendChild(tag);
+            }
+
+            const desc = document.createElement('div');
+            desc.className = 'pc-desc';
+            desc.innerHTML = DOMPurify.sanitize(marked.parse(data.summary || data.text || '')); // Markdown seguro
+
+            body.appendChild(title);
+            body.appendChild(meta);
+            body.appendChild(desc);
+
+            card.appendChild(img);
+            card.appendChild(body);
+            return card;
+        }
+
+        function addBotMessage(raw) {
+            // Intentar JSON -> postcard; si no, bubble markdown
+            let data;
+            try { data = JSON.parse(raw); } catch (e) { data = null; }
+
+            if (data && (data.destination || data.summary || data.image)) {
+                const row = document.createElement('div');
+                row.className = 'msg-row fade-in';
+                row.appendChild(createPostcardCard(data));
+                chat.appendChild(row);
+                return;
+            }
+
+            const row = document.createElement('div');
+            row.className = 'msg-row fade-in';
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble bot';
+            bubble.innerHTML = DOMPurify.sanitize(marked.parse(String(raw || '')));
+            const ts = document.createElement('div');
+            ts.className = 'timestamp';
+            ts.textContent = timeNow();
+            row.appendChild(bubble);
+            row.appendChild(ts);
+            chat.appendChild(row);
+        }
+
+        function addWelcome() {
+            addBotMessage("### Bienvenido a Travel Compass\n\nPregunta por destinos, hoteles, rutas o tips locales. Si envías JSON con esta forma, te devolveré una tarjeta estilo postal de viaje:\n\n```json\n{\n  \"destination\": \"Lisboa\",\n  \"country\": \"Portugal\",\n  \"duration\": \"4-5 días\",\n  \"flight\": \"Desde BCN 40€\",\n  \"image\": \"https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=1200&auto=format&fit=crop\",\n  \"summary\": \"Barrio Alto, miradouros y pastéis de nata. Ideal para caminar y perderse entre calles empedradas.\"\n}\n```\n");
+        }
+
+        function csrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]')?.value }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+            addUserMessage(text);
+            input.value = '';
+            input.focus();
+            scrollToBottom();
+
+            sendBtn.disabled = true;
+            try {
+                const res = await fetch('/api/chatbot/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...(csrfToken() ? { 'X-CSRFToken': csrfToken() } : {}) },
+                    body: JSON.stringify({ message: text })
+                });
+                if (!res.ok) throw new Error('Request failed');
+                const data = await res.json();
+                const reply = typeof data.reply === 'string' ? data.reply : JSON.stringify(data);
+                addBotMessage(reply);
+            } catch (err) {
+                addBotMessage('**Ups**: No pude obtener respuesta. Intenta de nuevo en unos segundos.');
+            } finally {
+                sendBtn.disabled = false;
+                scrollToBottom();
+            }
+        });
+
+        // Enviar con Enter (Shift+Enter para salto)
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+        });
+
+        // Init
+        addWelcome();
+        scrollToBottom();
+    </script>
+</body>
+
+</html>

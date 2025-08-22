@@ -3,11 +3,12 @@ import requests
 import spacy 
 from django.http import JsonResponse
 import json
+from dotenv import load_dotenv
 # Get token from environment variable for security
-HF_TOKEN = os.environ.get('HF_TOKEN')
-if not HF_TOKEN:
-    raise ValueError("HF_TOKEN environment variable is required. Please set it before running the application.")
 
+
+load_dotenv()
+HF_TOKEN = os.getenv("HF_TOKEN")
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 
 def text_inference(prompt):
@@ -94,17 +95,62 @@ Mensaje del usuario: "{mensaje_usuario}"
 """
 
 def crear_prompt_sintesis(mensaje_usuario, datos_hoteles):
-    """Crea el prompt para que el LLM genere una respuesta final usando los datos."""
-    # Tomamos solo los 3 primeros para no exceder el límite de tokens del prompt
-    hoteles_resumidos = datos_hoteles
+    """
+    Crea un prompt avanzado para que el LLM genere una respuesta final,
+    conversacional y visualmente atractiva usando los datos de hoteles.
+    """
+    # Convertimos los datos a un string JSON bien formateado para el prompt.
+    # Limitar la cantidad de hoteles aquí si es necesario para no exceder el contexto.
+    hoteles_json_string = json.dumps(datos_hoteles[:3], indent=2, ensure_ascii=False)
+
+    # El prompt mejorado con instrucciones claras y ejemplos (few-shot prompting)
     return f"""
-Eres un asistente de viajes amigable y servicial.
-El usuario te preguntó: "{mensaje_usuario}"
+# ROL Y OBJETIVO
+Eres Kódigo, un asistente de viajes virtual, experto en encontrar las mejores opciones para los usuarios. Tu tono es amigable, servicial y un poco entusiasta. Tu misión es transformar datos brutos de hoteles en una respuesta clara, útil y visualmente atractiva.
 
-Tú buscaste información y encontraste los siguientes hoteles, ordenados por precio:
-{json.dumps(hoteles_resumidos, indent=2, ensure_ascii=False)}
+# CONTEXTO
+Un usuario te ha hecho la siguiente petición: "{mensaje_usuario}"
+Tras buscar en tu sistema, has obtenido estos datos en formato JSON:
+```json
+{hoteles_json_string}
+```
 
-Basándote en esta información, crea una respuesta conversacional y útil.
-Resume los resultados de forma clara. Menciona el nombre, el precio y la puntuación si está disponible.
-No inventes información que no esté en los datos proporcionados.
+# TAREA Y REGLAS DE FORMATO
+Ahora, crea una respuesta conversacional para el usuario. Debes seguir estas reglas OBLIGATORIAMENTE:
+
+1.  **Inicio Conversacional:** Comienza con un saludo amigable. Resume en una frase lo que has encontrado. Ejemplo: "¡Genial! He encontrado algunas opciones fantásticas para ti en [Ciudad]. ¡Échales un vistazo!"
+
+2.  **Estructura Visual y Markdown:**
+    *   Usa un título claro para la lista, como `## 🏨 Hoteles Recomendados en [Ciudad]`.
+    *   Presenta cada hotel como un ítem de una lista con viñetas (`*`).
+    *   Utiliza emojis para hacer la información más digerible: 💰 para el precio, ⭐ para la puntuación, 📝 para la descripción, etc.
+
+3.  **Enlaces Clicables (CRÍTICO):**
+    *   El nombre de cada hotel DEBE ser un enlace clicable en formato Markdown, usando el campo `enlace_google`.
+    *   El formato debe ser: `**[Nombre del Hotel](enlace_google)**`. Usa negrita para que destaque.
+
+4.  **Resumen Conciso y Preciso:**
+    *   Debajo del nombre del hotel, resume los detalles clave en una o dos líneas.
+    *   Ejemplo: `💰 Precio: [precio] - ⭐ Puntuación: [puntuacion] ([total_opiniones] opiniones)`
+
+5.  **Cero Invenciones (IMPORTANTE):**
+    *   Solo puedes usar la información presente en el JSON proporcionado.
+    *   Si un dato (como `puntuacion` o `precio`) no está disponible para un hotel, indica claramente "No disponible" o simplemente omite esa parte. NO INVENTES NINGÚN DATO.
+
+6.  **Cierre Amigable:** Termina la respuesta con una pregunta abierta o una frase que invite a seguir la conversación. Ejemplo: "¿Qué te parecen estas opciones? ¿Quieres que busque más detalles sobre alguna?"
+
+# EJEMPLO DE SALIDA PERFECTA:
+¡Hola! Encontré algunas opciones excelentes para tu viaje a Madrid. ¡Aquí tienes un resumen!
+
+## 🏨 Hoteles Recomendados en Madrid
+
+*   **[Hotel Ritz Madrid](https://www.google.com/hotels/entity/...)**
+    💰 Precio: 500€ - ⭐ Puntuación: 4.8 (1200 opiniones)
+    📝 Un hotel de lujo histórico con vistas espectaculares al parque.
+
+*   **[Hotel Urban](https://www.google.com/hotels/entity/...)**
+    💰 Precio: 250€ - ⭐ Puntuación: 4.5 (850 opiniones)
+    📝 Famoso por su diseño vanguardista y su piscina en la azotea.
+
+¿Te gustaría que mirara la disponibilidad o buscara otro tipo de alojamiento? ¡Tú mandas!
 """

@@ -1,43 +1,510 @@
 <!DOCTYPE html>
-<html>
+<html lang="es" data-bs-theme="dark">
+
 <head>
-    <title>Chat básico</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>VaporWave Chat · Retro Travel Assistant</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Google Fonts - Retro/Vaporwave -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Urbanist:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/common.min.js"></script>
+
+    <!-- marked + DOMPurify -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+
+    <style>
+        :root {
+            --neon-pink: #ff4ecd;
+            --neon-purple: #b967ff;
+            --neon-cyan: #00fff0;
+            --electric-blue: #4df3ff;
+            --deep-purple: #1a0933;
+            --mid-purple: #2a0f4b;
+            --sunset-orange: #ff9966;
+            --sunset-pink: #ff5e99;
+            --sunset-violet: #6b2fb3;
+            --grid-line: rgba(255, 255, 255, .12);
+            --glass: rgba(10, 10, 25, .55);
+        }
+
+        html,
+        body {
+            height: 100%;
+            background: radial-gradient(120% 120% at 50% 10%, var(--sunset-orange) 0%, var(--sunset-pink) 30%, var(--sunset-violet) 65%, #05020a 100%);
+            color: #e9e9f1;
+            font-family: 'Urbanist', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+        }
+
+        .background-layer {
+            position: fixed;
+            inset: 0;
+            z-index: -3
+        }
+
+        .bg-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0) 65%, rgba(0, 0, 0, .35) 100%),
+                repeating-linear-gradient(to right, transparent 0 38px, var(--grid-line) 38px 39px),
+                repeating-linear-gradient(to top, transparent 0 38px, var(--grid-line) 38px 39px);
+            transform: perspective(700px) rotateX(55deg);
+            transform-origin: bottom;
+            opacity: .55;
+            filter: drop-shadow(0 0 10px rgba(77, 243, 255, .12));
+            bottom: -30%;
+        }
+
+        .bg-palms {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-repeat: no-repeat;
+            background-position: bottom left, bottom right;
+            background-size: 35% auto, 35% auto;
+            mix-blend-mode: screen;
+            opacity: .35;
+        }
+
+        .bg-palms {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='220' viewBox='0 0 520 220'%3E%3Cg fill='%23ff5e99'%3E%3Cpath d='M55 210c5-35 17-70 39-100 8-11 13-20 10-22-4-3-15 3-27 10-17 9-34 15-42 7-4-4-4-11 0-18 7-11 26-20 46-24 16-3 24-9 21-13-5-8-30-4-49-1-29 5-41-6-35-19 5-10 24-17 47-19 17-1 33 1 40-3 6-4 2-10-7-13-15-5-41-7-41-18 0-9 18-16 43-16 40 0 73 18 82 44 7 19 4 40-9 58-14 20-20 43-22 67-1 12 0 44-2 50H55z'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='220' viewBox='0 0 520 220'%3E%3Cg fill='%2300fff0'%3E%3Cpath d='M465 210c-5-35-17-70-39-100-8-11-13-20-10-22 4-3 15 3 27 10 17 9 34 15 42 7 4-4 4-11 0-18-7-11-26-20-46-24-16-3-24-9-21-13 5-8 30-4 49-1 29 5 41-6 35-19-5-10-24-17-47-19-17-1-33 1-40-3-6-4-2-10 7-13 15-5 41-7 41-18 0-9-18-16-43-16-40 0-73 18-82 44-7 19-4 40 9 58 14 20 20 43 22 67 1 12 0 44 2 50h64z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .neon-text {
+            font-family: 'Orbitron', sans-serif;
+            letter-spacing: .5px;
+            color: var(--electric-blue);
+            text-shadow: 0 0 6px rgba(77, 243, 255, .9), 0 0 24px rgba(185, 103, 255, .55);
+        }
+
+        .lcd-font {
+            font-family: 'VT323', monospace;
+            font-size: 1.1rem;
+            letter-spacing: .2px
+        }
+
+        .chat-wrapper {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: .8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            backdrop-filter: blur(8px);
+            background: linear-gradient(180deg, rgba(0, 0, 0, .35), rgba(0, 0, 0, .15));
+        }
+
+        .logo-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--neon-pink) 35%, #7b1c5e 60%);
+            box-shadow: 0 0 12px var(--neon-pink), 0 0 28px var(--neon-purple);
+        }
+
+        .switch3d {
+            position: relative;
+            width: 56px;
+            height: 28px;
+            border-radius: 28px;
+            background: linear-gradient(145deg, #222, #111);
+            box-shadow: inset 2px 2px 4px #0b0b0b, inset -2px -2px 4px #2a2a2a;
+            cursor: pointer
+        }
+
+        .switch3d::after {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #eee, #bbb);
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, .7), inset -2px -2px 3px rgba(255, 255, 255, .35);
+            transition: all .25s ease
+        }
+
+        .switch3d.active {
+            background: linear-gradient(145deg, #1c0730, #3a0f6b);
+            box-shadow: inset 2px 2px 6px rgba(0, 0, 0, .6), 0 0 10px var(--neon-purple), 0 0 24px var(--neon-cyan)
+        }
+
+        .switch3d.active::after {
+            left: 32px;
+            background: radial-gradient(circle at 30% 30%, #fff, #ddd);
+            box-shadow: 0 0 8px var(--neon-cyan), inset -2px -2px 3px rgba(255, 255, 255, .5)
+        }
+
+        .chat-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            padding: 1.25rem;
+            position: relative
+        }
+
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 16px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, .35), inset 0 0 24px rgba(255, 255, 255, .03);
+            backdrop-filter: blur(12px)
+        }
+
+        .msg {
+            max-width: 86%;
+            position: relative;
+            margin: 1.2rem 0
+        }
+
+        .bubble-lcd {
+            position: relative;
+            border-radius: 14px;
+            padding: .9rem 1.05rem;
+            color: #d9ffe6;
+            border: 1px solid rgba(0, 255, 200, .32);
+            background:
+                linear-gradient(180deg, rgba(0, 40, 40, .45), rgba(0, 20, 25, .65)),
+                radial-gradient(120% 100% at 10% 5%, rgba(255, 255, 255, .22) 0%, rgba(255, 255, 255, 0) 40%),
+                repeating-linear-gradient(0deg, rgba(0, 255, 200, .06) 0 2px, transparent 2px 4px);
+            box-shadow: inset 0 2px 0 rgba(255, 255, 255, .06), inset 0 -2px 0 rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .35);
+        }
+
+        .bubble-user {
+            color: #ffe9ff;
+            border-color: rgba(255, 78, 205, .45);
+            background:
+                linear-gradient(180deg, rgba(40, 0, 30, .5), rgba(25, 0, 30, .7)),
+                radial-gradient(120% 100% at 90% 5%, rgba(255, 255, 255, .18) 0%, rgba(255, 255, 255, 0) 42%),
+                repeating-linear-gradient(0deg, rgba(255, 78, 205, .08) 0 2px, transparent 2px 4px);
+            box-shadow: inset 0 2px 0 rgba(255, 255, 255, .06), inset 0 -2px 0 rgba(0, 0, 0, .35), 0 6px 18px rgba(255, 78, 205, .22);
+        }
+
+        .msg-time {
+            opacity: .65;
+            font-size: .8rem;
+            font-family: 'Orbitron', sans-serif
+        }
+
+        .btn-neon {
+            border: none;
+            padding: .55rem 1.2rem;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2b193f, #0e0a1a);
+            color: #e6e6ff;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, .06),
+                0 0 10px rgba(185, 103, 255, .55),
+                0 0 22px rgba(77, 243, 255, .35);
+            border: 1px solid rgba(185, 103, 255, .35);
+            text-shadow: 0 0 6px rgba(77, 243, 255, .55);
+        }
+
+        .btn-neon:hover {
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 0 12px rgba(185, 103, 255, .8), 0 0 28px rgba(77, 243, 255, .6)
+        }
+
+        .btn-neon:active {
+            transform: translateY(1px)
+        }
+
+        .composer {
+            border: 1px solid rgba(255, 255, 255, .18);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(0, 0, 0, .25));
+            border-radius: 14px;
+            box-shadow: inset 0 0 24px rgba(0, 0, 0, .25)
+        }
+
+        textarea.form-control {
+            background: transparent;
+            border: none;
+            color: #e9e9f1;
+            resize: none
+        }
+
+        textarea.form-control:focus {
+            box-shadow: none
+        }
+
+        .message-separator {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 78, 205, .35), rgba(77, 243, 255, .35), transparent);
+            margin: 1rem 0
+        }
+
+        /* markdown content */
+        .prose {
+            line-height: 1.65
+        }
+
+        .prose pre {
+            background: rgba(0, 0, 0, .35);
+            border: 1px solid rgba(255, 255, 255, .15);
+            border-left: 3px solid var(--neon-cyan);
+            padding: .75rem .9rem;
+            border-radius: 10px
+        }
+
+        .prose code {
+            background: rgba(255, 255, 255, .08);
+            padding: .15rem .35rem;
+            border-radius: 4px
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 10px
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--neon-purple), var(--neon-pink));
+            border-radius: 20px
+        }
+    </style>
 </head>
-<body style="background-color: black; color: white;"> 
-<h1>Chatbot</h1>
 
-<div id="chatbox" style="border:1px solid #ccc; height:200px; overflow-y:auto; padding:5px;"></div>
+<body>
+    <!-- Background layers -->
+    <div class="background-layer">
+        <div class="bg-palms"></div>
+        <div class="bg-grid"></div>
+    </div>
 
-<form id="chatForm">
-    {% csrf_token %}
-    <input id="message" placeholder="Escribe un mensaje" required>
-    <button>Enviar</button>
-</form>
+    <div class="chat-wrapper">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="container">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="logo-dot"></div>
+                    <h1 class="h5 neon-text m-0">VaporWave Travel Assistant</h1>
+                    <div class="ms-auto d-flex align-items-center gap-3">
+                        <span class="small text-uppercase" style="letter-spacing:.15em; opacity:.75">VHS MODE</span>
+                        <div id="vhsSwitch" class="switch3d" onclick="this.classList.toggle('active')"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-<script>
-const form = document.getElementById('chatForm');
-const chatbox = document.getElementById('chatbox');
-const input = document.getElementById('message');
+        <!-- Chat body -->
+        <main id="chatBody" class="chat-body">
+            <div class="container glass-card py-3 px-3 px-md-4">
+                <div id="messages" class="d-flex flex-column"></div>
+            </div>
+        </main>
 
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const msg = input.value;
-    chatbox.innerHTML += `<p><b>Tú:</b> ${msg}</p>`;
-    input.value = '';
+        <!-- Chat footer / input -->
+        <footer class="chat-footer">
+            <div class="container">
+                <form id="chatForm" class="composer d-flex gap-3 align-items-end p-2 p-md-3">
+                    {% csrf_token %}
+                    <div class="flex-grow-1">
+                        <textarea id="message" class="form-control lcd-font" rows="2"
+                            placeholder="Dime tu destino... (Shift+Enter = salto)" required></textarea>
+                    </div>
+                    <button id="sendBtn" type="submit" class="btn btn-neon px-3 px-md-4">Enviar</button>
+                </form>
+            </div>
+        </footer>
+    </div>
 
-    const res = await fetch('/api/chatbot/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({ message: msg })
-    });
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    const data = await res.json();
-    chatbox.innerHTML += `<p><b>Bot:</b> ${data.reply}</p>`;
-    chatbox.scrollTop = chatbox.scrollHeight;
-});
-</script>
+    <script>
+        // Configurar marked con highlight.js
+        marked.setOptions({
+            highlight: function (code, lang) {
+                try {
+                    if (lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    return hljs.highlightAuto(code).value;
+                } catch (e) {
+                    return code;
+                }
+            }
+        });
+
+        const form = document.getElementById('chatForm');
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('message');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Añadir mensaje de bienvenida
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                appendAssistantMessageMarkdown("## Bienvenido al VaporWave Travel Assistant\n\nPide recomendaciones de hoteles, rutas y destinos con estilo retro ✨\n\n- Hoteles y barrios\n- Itinerarios\n- Consejos locales\n- Presupuesto y transporte");
+            }, 300);
+        });
+
+        function nowTime() {
+            const d = new Date();
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function appendUserMessage(text) {
+            // Añadir separador si hay mensajes previos
+            if (messages.children.length > 0) {
+                const separator = document.createElement('div');
+                separator.className = 'message-separator';
+                messages.appendChild(separator);
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'd-flex';
+            const bubble = document.createElement('div');
+            bubble.className = 'msg bubble-lcd bubble-user';
+            bubble.textContent = text;
+            const time = document.createElement('div');
+            time.className = 'text-end msg-time';
+            time.textContent = nowTime();
+            wrapper.appendChild(bubble);
+            const container = document.createElement('div');
+            container.className = 'd-flex flex-column align-items-end';
+            container.appendChild(wrapper);
+            container.appendChild(time);
+            messages.appendChild(container);
+        }
+
+        function appendAssistantMessageMarkdown(markdownText) {
+            // Añadir separador si hay mensajes previos
+            if (messages.children.length > 0) {
+                const separator = document.createElement('div');
+                separator.className = 'message-separator';
+                messages.appendChild(separator);
+            }
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'd-flex';
+            const bubble = document.createElement('div');
+            bubble.className = 'msg bubble-lcd prose';
+            // parse + sanitize markdown
+            const html = DOMPurify.sanitize(marked.parse(markdownText || ''));
+            bubble.innerHTML = html;
+            const time = document.createElement('div');
+            time.className = 'msg-time';
+            time.textContent = nowTime();
+            const container = document.createElement('div');
+            container.className = 'd-flex flex-column';
+            container.appendChild(wrapper);
+            container.appendChild(time);
+            wrapper.appendChild(bubble);
+            messages.appendChild(container);
+            // resaltar bloques de código agregados
+            document.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
+        }
+
+        function appendAssistantTyping() {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'd-flex';
+            const bubble = document.createElement('div');
+            bubble.className = 'msg bubble-lcd';
+
+            // Indicador de escritura con puntos animados
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'typing-indicator';
+            typingIndicator.innerHTML = 'Pensando<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+
+            bubble.appendChild(typingIndicator);
+            wrapper.appendChild(bubble);
+            messages.appendChild(wrapper);
+
+            // Animación de los puntos
+            let dots = bubble.querySelectorAll('.dot');
+            let i = 0;
+            const animateDots = setInterval(() => {
+                dots.forEach(dot => dot.style.opacity = '0.2');
+                dots[i % 3].style.opacity = '1';
+                i++;
+            }, 300);
+
+            // Guardar el intervalo para limpiarlo después
+            bubble.animationInterval = animateDots;
+
+            return bubble;
+        }
+
+        function scrollToBottom() {
+            const body = document.getElementById('chatBody');
+            body.scrollTop = body.scrollHeight;
+        }
+
+        // Enviar con Enter, salto de línea con Shift+Enter
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            // pinta el mensaje del usuario
+            appendUserMessage(msg);
+            input.value = '';
+            input.focus();
+            const typingBubble = appendAssistantTyping();
+            scrollToBottom();
+
+            // preparar petición
+            sendBtn.disabled = true;
+            const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            try {
+                const res = await fetch('/api/chatbot/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(csrf ? { 'X-CSRFToken': csrf } : {})
+                    },
+                    body: JSON.stringify({ message: msg })
+                });
+
+                if (!res.ok) throw new Error('Error en la solicitud');
+                const data = await res.json();
+                const reply = typeof data.reply === 'string' ? data.reply : JSON.stringify(data);
+
+                // Detener la animación
+                if (typingBubble.animationInterval) {
+                    clearInterval(typingBubble.animationInterval);
+                }
+
+                // Eliminar la burbuja de escritura
+                typingBubble.parentNode.remove();
+
+                // Añadir la respuesta real como un nuevo mensaje
+                appendAssistantMessageMarkdown(reply);
+
+            } catch (err) {
+                // Detener la animación
+                if (typingBubble.animationInterval) {
+                    clearInterval(typingBubble.animationInterval);
+                }
+
+                typingBubble.innerHTML = '⚠️ Error obteniendo respuesta. Por favor, intenta nuevamente.';
+            } finally {
+                sendBtn.disabled = false;
+                scrollToBottom();
+            }
+        });
+    </script>
 </body>
+
 </html>
