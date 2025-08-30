@@ -25,37 +25,41 @@ params = {
 
 
 def hotel_query(params):
-  try:
-    params["api_key"] = SERPI_TOKEN
-    search = GoogleSearch(params)
-    results = search.get_dict()
+    try:
+        params["api_key"] = SERPI_TOKEN
+        search = GoogleSearch(params)
+        results = search.get_dict()
 
-    if "error" in results:
-      return f"Ocurrió un error en la API: {results['error']}"
+        if "error" in results:
+            return f"An API error occurred: {results['error']}"
 
-    if "properties" not in results:
-      return "No se encontraron hoteles para la búsqueda especificada."
+        if "properties" not in results:
+            return "No hotels were found for the specified search."
 
-    lista_hoteles = results.get("properties", [])
+        lista_hoteles = results.get("properties", [])
 
-    if not lista_hoteles:
-      return "No se encontraron hoteles para la búsqueda especificada."
+        if not lista_hoteles:
+            return "No hotels were found for the specified search."
 
-    # Build the formatted string
-    hoteles_encontrados = []
-    hotel_info_string = f"Se encontraron {len(lista_hoteles)} hoteles:\n\n"
-    for hotel in lista_hoteles:
-        info_hotel = {
-            "nombre": hotel.get("name"),
-            "precio": hotel.get("rate_per_night", {}).get("lowest"),
-            "puntuacion": hotel.get("overall_rating"),
-            "total_opiniones": hotel.get("reviews"),
-            "descripcion": hotel.get("description"),
-            "enlace_google": hotel.get("link")
-        }
-        hoteles_encontrados.append(info_hotel)
+        # Build the formatted string
+        hoteles_encontrados = []
+        for hotel in lista_hoteles[:10]:
+            info_hotel = {
+                "nombre": hotel.get("name"),
+                "precio": hotel.get("rate_per_night", {}).get("lowest"),
+                "puntuacion": hotel.get("overall_rating"),
+                "total_opiniones": hotel.get("reviews"),
+                "descripcion": hotel.get("description"),
+                "enlace_google": hotel.get("link")
+            }
+            hoteles_encontrados.append(info_hotel)
+        hoteles_encontrados.append({"adults" : params["adults"]})
+        hoteles_encontrados.append({"checkin" : params["check_in_date"]})
+        hoteles_encontrados.append({"checkout" : params["check_out_date"]})
 
-    return hoteles_encontrados
 
-  except Exception as e:
-    return f"Ha ocurrido una excepción: {str(e)}"
+#add checkin and checkout
+        return hoteles_encontrados
+
+    except Exception as e:
+        return f"An exception has occurred: {str(e)}"

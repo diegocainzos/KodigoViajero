@@ -1,6 +1,6 @@
 import os
 import requests
-import spacy 
+import spacy
 from django.http import JsonResponse
 import json
 from dotenv import load_dotenv
@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
 API_URL = "https://router.huggingface.co/v1/chat/completions"
+
 
 def text_inference(prompt):
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
@@ -23,134 +24,133 @@ def text_inference(prompt):
         "model": "openai/gpt-oss-20b",
     }
 
-    response =  requests.post(API_URL, headers=headers, json=payload)
+    response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()["choices"][0]["message"]["content"]
-    
+
+
 tools = [
     {
         "name": "query_hotels",
-        "description": "Busca hoteles en una localización específica, ordenados del más barato al más caro. Si el usuario indica algo sobre un viaje, selecciona esta herramineta, deberas usarla casi sin excepcion",
+        "description": "Searches for hotels in a specific location, sorted from cheapest to most expensive. If the user indicates anything about a trip, select this tool; you should use it almost by default.",
         "parameters": [
             {
                 "name": "q",
                 "type": "string",
-                "description": "La ciudad o lugar donde buscar hoteles. Por ejemplo: 'París', 'Playa del Carmen, México'."
+                "description": "The city or place to search for hotels. For example: 'Paris', 'Playa del Carmen, Mexico'."
             },
             {
-                "name" : "engine",
-                "type" : "string",
-                "description" : "El valor de este parametro sera siempre: google_hotels"
+                "name": "engine",
+                "type": "string",
+                "description": "The value of this parameter will always be: google_hotels"
             },
             {
                 "name": "check_in_date",
                 "type": "string",
-                "description": "Fecha de check-in en formato AAAA-MM-DD. Ejemplo: '2025-09-15'. En caso de no especificar un periodo concreto, te la inventas. Siempre posterior al 2025-10-01 "
+                "description": "Check-in date in YYYY-MM-DD format. Example: '2025-09-15'. If the user doesn't specify a concrete period, invent one, always after 2025-10-01."
             },
             {
                 "name": "check_out_date",
                 "type": "string",
-                "description": "Fecha de check-out en formato AAAA-MM-DD. Ejemplo: '2025-09-16'.En caso de no especificar un periodo concreto, te la inventas. Siempre posterior al check_in_date que tambien te has inventado"
+                "description": "Check-out date in YYYY-MM-DD format. Example: '2025-09-16'. If the user doesn't specify a concrete period, invent one. Always after the invented check_in_date."
             },
             {
                 "name": "adults",
                 "type": "string",
-                "description": "Número de adultos. Ejemplo: '2'."
+                "description": "Number of adults. Example: '2'. When not specified use 2."
+            },
+            # {
+            #     "name": "children",
+            #     "type": "string",
+            #     "description": "Parameter defines the number of children. Default to 0."
+            # },
+            # {
+            #     "name": "children_ages",
+            #     "type": "string",
+            #     "description": """Parameter defines the ages of children. The age range is from 1 to 17. Parameter defines the ages of children. The age range is from 1 to 17. Example for single child only: 5. Example for multiple children (seperated by comma ,): 5,8,10. Empty if there is 0 children. Default of 8 separated by comma as many children""",
+            # },
+            {
+                "name": "hotel_class",
+                "type": "string",
+                "description": "Parameter defines to include only certain hotel class in the results. Available options: 2 - 2-star, 3 - 3-star, 4 - 4-star, 5 - 5-star. When not specified ignore this parameter."
             },
             {
                 "name": "sort_by",
                 "type": "string",
-                "description": "Criterio de ordenamiento. Ejemplo: '3' para ordenar por precio. Pon 3 siempre"
+                "description": "Parameter is used for sorting the results. Available options: 3 - Lowest price ,8 - Highest rating ,13 - Most reviewed. When not specified ignore this parameter."
             },
             {
                 "name": "currency",
                 "type": "string",
-                "description": "Currency. Default option is EUR, but USD or other can be used if indicated."                
+                "description": "Currency. Default option is EUR, but USD or other can be used if indicated."
             },
         ]
     }
 ]
 
-def crear_prompt_decision(mensaje_usuario):
-    """Crea el prompt para que el LLM decida si usar una herramienta."""
-    return f"""
-Tu tarea es analizar el mensaje del usuario y decidir si necesitas llamar a una herramienta para responder.
-Responde únicamente con un objeto JSON.
 
-Herramientas disponibles:
+def crear_prompt_decision(mensaje_usuario):
+    """Create the prompt for the LLM to decide whether to use a tool."""
+    return f"""
+Your task is to analyze the user's message and decide whether you need to call a tool to respond.
+Reply only with a JSON object.
+
+Available tools:
 {json.dumps(tools, indent=2)}
 
-Si una herramienta es necesaria, responde con:
+If a tool is necessary, respond with:
 {{
-  "decision": "usar_herramienta",
-  "name": "nombre_de_la_herramienta",
-  "parameters": {{ "nombre_parametro": "valor_extraido" }}
+  "decision": "use_tool",
+  "name": "tool_name",
+  "parameters": {{ "param_name": "extracted_value" }}
 }}
 
-Si no se necesita ninguna herramienta, responde con:
+If no tool is needed, respond with:
 {{
-  "decision": "responder_directamente"
+  "decision": "answer_directly"
 }}
 
-Mensaje del usuario: "{mensaje_usuario}"
+User message: "{mensaje_usuario}"
 """
+
 
 def crear_prompt_sintesis(mensaje_usuario, datos_hoteles):
     """
-    Crea un prompt avanzado para que el LLM genere una respuesta final,
-    conversacional y visualmente atractiva usando los datos de hoteles.
+    Create an advanced prompt for the LLM to generate a final, conversational,
+    and visually appealing response using the hotel data.
     """
-    # Convertimos los datos a un string JSON bien formateado para el prompt.
-    # Limitar la cantidad de hoteles aquí si es necesario para no exceder el contexto.
-    hoteles_json_string = json.dumps(datos_hoteles[:3], indent=2, ensure_ascii=False)
+    # Convert the data to a well-formatted JSON string for the prompt.
+    # Limit the number of hotels here if necessary to avoid exceeding context.
+    hoteles_json_string = json.dumps(
+        datos_hoteles, indent=2, ensure_ascii=False)
+    print(hoteles_json_string)
 
-    # El prompt mejorado con instrucciones claras y ejemplos (few-shot prompting)
+    # Improved prompt with clear instructions and examples (few-shot prompting)
     return f"""
-# ROL Y OBJETIVO
-Eres Kódigo, un asistente de viajes virtual, experto en encontrar las mejores opciones para los usuarios. Tu tono es amigable, servicial y un poco entusiasta. Tu misión es transformar datos brutos de hoteles en una respuesta clara, útil y visualmente atractiva.
+# ROLE AND GOAL
+You are Kódigo, a virtual travel assistant, expert at finding the best options for users. Your tone is friendly, helpful, and a bit enthusiastic. Your mission is to transform raw hotel data into a clear, useful, and visually appealing response.
 
-# CONTEXTO
-Un usuario te ha hecho la siguiente petición: "{mensaje_usuario}"
-Tras buscar en tu sistema, has obtenido estos datos en formato JSON:
+# CONTEXT
+A user has made the following request: "{mensaje_usuario}"
+After searching your system, you obtained this data in JSON format:
 ```json
 {hoteles_json_string}
 ```
 
-# TAREA Y REGLAS DE FORMATO
-Ahora, crea una respuesta conversacional para el usuario. Debes seguir estas reglas OBLIGATORIAMENTE:
+# TASK AND FORMATTING RULES
+Now, create a conversational response for the user. You MUST follow these rules:
 
-1.  **Inicio Conversacional:** Comienza con un saludo amigable. Resume en una frase lo que has encontrado. Ejemplo: "¡Genial! He encontrado algunas opciones fantásticas para ti en [Ciudad]. ¡Échales un vistazo!"
+1.  **Conversational Start:** Begin with a friendly greeting. Summarize in one sentence what you found, including the location. Example: "Of course! I found several hotels in [City] for your stay between [check_in_date] and [check_in_date] for [adults] adults. Here are the top results:"
 
-2.  **Estructura Visual y Markdown:**
-    *   Usa un título claro para la lista, como `## 🏨 Hoteles Recomendados en [Ciudad]`.
-    *   Presenta cada hotel como un ítem de una lista con viñetas (`*`).
-    *   Utiliza emojis para hacer la información más digerible: 💰 para el precio, ⭐ para la puntuación, 📝 para la descripción, etc.
+2.  **Markdown Table:** Present all the hotel options in a compact Markdown table.
+    *   The table columns should be: `Hotel`, `Price`, `Rating`, `Reviews`.
+    *   The `Hotel` name MUST be a clickable Markdown link using the `enlace_google` field: `[Hotel Name](enlace_google)`.
+    *   Do not use any emojis.
 
-3.  **Enlaces Clicables (CRÍTICO):**
-    *   El nombre de cada hotel DEBE ser un enlace clicable en formato Markdown, usando el campo `enlace_google`.
-    *   El formato debe ser: `**[Nombre del Hotel](enlace_google)**`. Usa negrita para que destaque.
+3.  **Data Integrity:**
+    *   You may only use information present in the provided JSON.
+    *   If a field (like `puntuacion` or `precio`) is not available for a hotel, use "N/A" in the table cell. DO NOT INVENT ANY DATA.
 
-4.  **Resumen Conciso y Preciso:**
-    *   Debajo del nombre del hotel, resume los detalles clave en una o dos líneas.
-    *   Ejemplo: `💰 Precio: [precio] - ⭐ Puntuación: [puntuacion] ([total_opiniones] opiniones)`
+4.  **Friendly Close:** End the response with a brief, open-ended question. Example: "Would you like more details on any of these?"
 
-5.  **Cero Invenciones (IMPORTANTE):**
-    *   Solo puedes usar la información presente en el JSON proporcionado.
-    *   Si un dato (como `puntuacion` o `precio`) no está disponible para un hotel, indica claramente "No disponible" o simplemente omite esa parte. NO INVENTES NINGÚN DATO.
 
-6.  **Cierre Amigable:** Termina la respuesta con una pregunta abierta o una frase que invite a seguir la conversación. Ejemplo: "¿Qué te parecen estas opciones? ¿Quieres que busque más detalles sobre alguna?"
-
-# EJEMPLO DE SALIDA PERFECTA:
-¡Hola! Encontré algunas opciones excelentes para tu viaje a Madrid. ¡Aquí tienes un resumen!
-
-## 🏨 Hoteles Recomendados en Madrid
-
-*   **[Hotel Ritz Madrid](https://www.google.com/hotels/entity/...)**
-    💰 Precio: 500€ - ⭐ Puntuación: 4.8 (1200 opiniones)
-    📝 Un hotel de lujo histórico con vistas espectaculares al parque.
-
-*   **[Hotel Urban](https://www.google.com/hotels/entity/...)**
-    💰 Precio: 250€ - ⭐ Puntuación: 4.5 (850 opiniones)
-    📝 Famoso por su diseño vanguardista y su piscina en la azotea.
-
-¿Te gustaría que mirara la disponibilidad o buscara otro tipo de alojamiento? ¡Tú mandas!
 """

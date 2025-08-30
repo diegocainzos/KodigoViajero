@@ -6,6 +6,10 @@ from .services.nlp_service import extract_tourism_info
 from .models import Destinations
 
 
+class HomePageView(TemplateView):
+    template_name = "home.html"
+
+
 class HtmxPageView(TemplateView):
     template_name = "htmlx.html"
 
@@ -16,7 +20,7 @@ class ChatPageView(TemplateView):
 
 def chatbot_api(request):
     if request.method == "POST":
-        # Soporta HTMX form (request.POST) y JSON
+        # Supports HTMX form (request.POST) and JSON
         msg = request.POST.get("message")
         if msg is None:
             try:
@@ -28,15 +32,15 @@ def chatbot_api(request):
         reply = procesar_mensaje_usuario(msg)
         print(reply, type(reply))
 
-        # Si viene de HTMX devolvemos un fragmento HTML con el textarea actualizado
+        # If it's an HTMX request, return an HTML fragment with the updated textarea
         if request.headers.get("HX-Request") == "true":
             user_message = request.POST.get("message", "")
             respuesta = procesar_mensaje_usuario(user_message)
 
-            # Formatear con saltos de línea para añadir al historial
-            formatted_message = f"\nTú: {user_message}\nBot: {respuesta}\n"
+            # Format with line breaks to append to the history
+            formatted_message = f"\nYou: {user_message}\nBot: {respuesta}\n"
 
             return HttpResponse(formatted_message)
 
-        # API normal JSON
+        # Regular JSON API
         return JsonResponse({"reply": str(reply)})

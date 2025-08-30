@@ -2,71 +2,79 @@ from chatbot.services.chatbot_api_service import crear_prompt_decision, crear_pr
 from chatbot.services.serpi_service import hotel_query
 import json
 
+
 def procesar_mensaje_usuario(mensaje_usuario):
     """
-    Función principal que orquesta todo el flujo.
+    Main function that orchestrates the entire flow.
     """
-    print(f"\n[Orquestador] Procesando mensaje: '{mensaje_usuario}'")
+    print(f"\n[Orchestrator] Processing message: '{mensaje_usuario}'")
 
-    # 1. Decidir si se necesita una herramienta
+    # 1. Decide whether a tool is needed
     prompt_decision = crear_prompt_decision(mensaje_usuario)
     respuesta_decision_str = text_inference(prompt=prompt_decision)
-    
-    print(f"[Orquestador] Respuesta de decisión del LLM: {respuesta_decision_str}")
-    
+
+    print(f"[Orchestrator] LLM decision response: {respuesta_decision_str}")
+
     try:
         respuesta_decision = json.loads(respuesta_decision_str)
         print(respuesta_decision)
     except json.JSONDecodeError:
-        print("[Orquestador] Error: El LLM no devolvió un JSON válido. Respondiendo directamente.")
-        respuesta_decision = {"decision": "responder_directamente"}
+        print(
+            "[Orchestrator] Error: The LLM did not return valid JSON. Answering directly.")
+        respuesta_decision = {"decision": "answer_directly"}
 
-    # 2. Actuar según la decisión
-    if respuesta_decision.get("decision") == "usar_herramienta":
+    # 2. Act based on the decision
+    if respuesta_decision.get("decision") == "use_tool":
         nombre_herramienta = respuesta_decision.get("name")
         parametros = respuesta_decision.get("parameters")
-        
+
         if nombre_herramienta == "query_hotels" and parametros:
-            print(f"[Orquestador] LLM decidió usar la herramienta 'query_hotels' para la localización: '{parametros}'")
+            print(
+                f"[Orchestrator] LLM decided to use the 'query_hotels' tool for the location: '{parametros}'")
             print(parametros)
-            # 3. Ejecutar la función local (la herramienta)
+            # 3. Execute the local function (the tool)
             datos_hoteles = hotel_query(parametros)
 
             if not datos_hoteles:
-                return "Lo siento, no pude encontrar hoteles para esa localización. ¿Quieres intentar con otro lugar?"
+                return "Sorry, I couldn't find hotels for that location. Would you like to try another place?"
 
-            # 4. Sintetizar la respuesta final con los datos
-            print("[Orquestador] Datos de hoteles obtenidos. Pidiendo al LLM que sintetice la respuesta.")
-            prompt_sintesis = crear_prompt_sintesis(mensaje_usuario, datos_hoteles)
+            # 4. Synthesize the final answer with the data
+            print(
+                "[Orchestrator] Hotel data obtained. Asking the LLM to synthesize the response.")
+            prompt_sintesis = crear_prompt_sintesis(
+                mensaje_usuario, datos_hoteles)
             respuesta_final = text_inference(prompt=prompt_sintesis).strip()
             return respuesta_final
         else:
-            
-            return f"Parece que necesito más información para ayudarte con eso. ¿Podrías especificar mejor?, {nombre_herramienta}"
 
-    else: # Responder directamente
-        print("[Orquestador] LLM decidió responder directamente.")
-        prompt_simple = f"Eres un asistente de viajes. Responde de forma amigable a la siguiente pregunta: {mensaje_usuario}"
+            return f"It looks like I need more information to help you with that. Could you be more specific? Tool: {nombre_herramienta}"
+
+    else:  # Responder directamente
+        print("[Orchestrator] LLM decided to answer directly.")
+        prompt_simple = f"You are a travel assistant. Answer the following question in a friendly way: {mensaje_usuario}"
         respuesta_final = text_inference(prompt=prompt_simple).strip()
         return respuesta_final
-    
+
+
 def run_chat_loop():
-    print("¡Hola! Soy tu chatbot de viajes. Escribe 'salir' para terminar.")
+    print("Hi! I'm your travel chatbot. Type 'exit' to finish.")
     while True:
-        mensaje = input("Tú: ")
-        if mensaje.lower() == 'salir':
-            print("Chatbot: ¡Hasta luego!")
+        mensaje = input("You: ")
+        if mensaje.lower() == 'exit':
+            print("Chatbot: See you later!")
             break
         respuesta_bot = procesar_mensaje_usuario(mensaje)
         print(f"Chatbot: {respuesta_bot}")
+
+
 """
 # --- Bucle principal para chatear ---
 if __name__ == "__main__":
-    print("¡Hola! Soy tu chatbot de viajes. Escribe 'salir' para terminar.")
+    print("Hi! I'm your travel chatbot. Type 'exit' to finish.")
     while True:
-        mensaje = input("Tú: ")
-        if mensaje.lower() == 'salir':
-            print("Chatbot: ¡Hasta luego!")
+        mensaje = input("You: ")
+        if mensaje.lower() == 'exit':
+            print("Chatbot: See you later!")
             break
         
         respuesta_bot = procesar_mensaje_usuario(mensaje)

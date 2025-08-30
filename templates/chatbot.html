@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
@@ -419,16 +419,16 @@
         </header>
 
         <main>
-            <section class="chat-shell" aria-label="Ventana de chat">
+            <section class="chat-shell" aria-label="Chat window">
                 <div id="chat" class="chat-scroll">
-                    <!-- Mensajes se agregan aquí -->
+                    <!-- Messages are appended here -->
                 </div>
                 <form id="composer" class="composer" autocomplete="off">
                     {% csrf_token %}
-                    <label class="sr" for="message">Tu mensaje</label>
+                    <label class="sr" for="message">Your message</label>
                     <textarea id="message" name="message"
-                        placeholder="¿A dónde vamos? Pregunta por hoteles, rutas o consejos…" required></textarea>
-                    <button class="btn btn-primary" type="submit" id="sendBtn">Enviar</button>
+                        placeholder="Where are we going? Ask about hotels, routes, or tips…" required></textarea>
+                    <button class="btn btn-primary" type="submit" id="sendBtn">Send</button>
                 </form>
             </section>
         </main>
@@ -465,12 +465,12 @@
             const card = document.createElement('div');
             card.className = 'postcard fade-in';
             const img = document.createElement('img');
-            img.alt = data.destination || 'Destino';
+            img.alt = data.destination || 'Destination';
             img.src = data.image || `https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop`; // Fallback
             const body = document.createElement('div');
             const title = document.createElement('div');
             title.className = 'pc-title';
-            title.textContent = data.destination || 'Recomendación de viaje';
+            title.textContent = data.destination || 'Travel recommendation';
             const meta = document.createElement('div');
             meta.className = 'pc-meta';
 
@@ -492,7 +492,7 @@
 
             const desc = document.createElement('div');
             desc.className = 'pc-desc';
-            desc.innerHTML = DOMPurify.sanitize(marked.parse(data.summary || data.text || '')); // Markdown seguro
+            desc.innerHTML = DOMPurify.sanitize(marked.parse(data.summary || data.text || '')); // Safe Markdown
 
             body.appendChild(title);
             body.appendChild(meta);
@@ -504,7 +504,7 @@
         }
 
         function addBotMessage(raw) {
-            // Intentar JSON -> postcard; si no, bubble markdown
+            // Try JSON -> postcard; otherwise, markdown bubble
             let data;
             try { data = JSON.parse(raw); } catch (e) { data = null; }
 
@@ -530,7 +530,7 @@
         }
 
         function addWelcome() {
-            addBotMessage("### Bienvenido a Travel Compass\n\nPregunta por destinos, hoteles, rutas o tips locales. Si envías JSON con esta forma, te devolveré una tarjeta estilo postal de viaje:\n\n```json\n{\n  \"destination\": \"Lisboa\",\n  \"country\": \"Portugal\",\n  \"duration\": \"4-5 días\",\n  \"flight\": \"Desde BCN 40€\",\n  \"image\": \"https://images.unsplash.com/photo-1508057198894-247b23fe5ade?q=80&w=1200&auto=format&fit=crop\",\n  \"summary\": \"Barrio Alto, miradouros y pastéis de nata. Ideal para caminar y perderse entre calles empedradas.\"\n}\n```\n");
+            addBotMessage("### 💬 Welcome to Kódigo!\nI can help you find the perfect hotel — fast and easy.\nYou can:\n\n- Search with **exact dates** → *“Hotels in Paris from Sept 5 to Sept 10”*\n- Sort results by **price 💰** or **rating ⭐** → *“Show me the cheapest hotels in Rome”*\n- Filter by **location** → *“Hotels near Times Square”*\n\n👉 What kind of stay are you looking for?");
         }
 
         function csrfToken() { return document.querySelector('[name=csrfmiddlewaretoken]')?.value }
@@ -556,14 +556,14 @@
                 const reply = typeof data.reply === 'string' ? data.reply : JSON.stringify(data);
                 addBotMessage(reply);
             } catch (err) {
-                addBotMessage('**Ups**: No pude obtener respuesta. Intenta de nuevo en unos segundos.');
+                addBotMessage('**Oops**: I couldn\'t get a response. Try again in a few seconds.');
             } finally {
                 sendBtn.disabled = false;
                 scrollToBottom();
             }
         });
 
-        // Enviar con Enter (Shift+Enter para salto)
+        // Submit with Enter (Shift+Enter for newline)
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
         });

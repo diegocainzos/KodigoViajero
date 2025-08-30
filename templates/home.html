@@ -1,509 +1,600 @@
 <!DOCTYPE html>
-<html lang="es" data-bs-theme="dark">
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>VaporWave Chat · Retro Travel Assistant</title>
+    <title>Conversations that feel natural · Chatbot</title>
 
-    <!-- Bootstrap 5 -->
+    <!-- Bootstrap (utilities/layout only) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
 
-    <!-- Google Fonts - Retro/Vaporwave -->
+    <!-- Google Fonts: friendly serif + clean sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=VT323&family=Urbanist:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@500;700&display=swap"
         rel="stylesheet">
-
-    <!-- highlight.js -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/common.min.js"></script>
-
-    <!-- marked + DOMPurify -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 
     <style>
         :root {
-            --neon-pink: #ff4ecd;
-            --neon-purple: #b967ff;
-            --neon-cyan: #00fff0;
-            --electric-blue: #4df3ff;
-            --deep-purple: #1a0933;
-            --mid-purple: #2a0f4b;
-            --sunset-orange: #ff9966;
-            --sunset-pink: #ff5e99;
-            --sunset-violet: #6b2fb3;
-            --grid-line: rgba(255, 255, 255, .12);
-            --glass: rgba(10, 10, 25, .55);
+            /* Palette */
+            --sand: #f6f1e7;
+            --leaf: #5a8f6b;
+            --leaf-dark: #3f6f54;
+            --moss: #b8cfb6;
+            --river: #cfeaf7;
+            --earth: #9c7a5a;
+            --wood: #8c5a3c;
+            --forest: #0f3d2e;
+            --cream: #fff8ea;
+            --ink: #2a2a2a;
+
+            --paper-shadow: 0 12px 30px rgba(36, 41, 32, .08);
+            --radius-xl: 22px;
+            --radius-lg: 16px;
+            --radius-md: 12px;
         }
 
         html,
         body {
             height: 100%;
-            background: radial-gradient(120% 120% at 50% 10%, var(--sunset-orange) 0%, var(--sunset-pink) 30%, var(--sunset-violet) 65%, #05020a 100%);
-            color: #e9e9f1;
-            font-family: 'Urbanist', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            background: linear-gradient(160deg, var(--sand) 0%, #e8f1e7 40%, #d9edd9 65%, var(--river) 100%);
+            color: var(--ink);
+            font-family: 'Lato', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
         }
 
-        .background-layer {
-            position: fixed;
-            inset: 0;
-            z-index: -3
+        .site-wrap {
+            overflow-x: hidden;
         }
 
-        .bg-grid {
-            position: absolute;
-            inset: 0;
-            background-image:
-                linear-gradient(rgba(255, 255, 255, 0) 65%, rgba(0, 0, 0, .35) 100%),
-                repeating-linear-gradient(to right, transparent 0 38px, var(--grid-line) 38px 39px),
-                repeating-linear-gradient(to top, transparent 0 38px, var(--grid-line) 38px 39px);
-            transform: perspective(700px) rotateX(55deg);
-            transform-origin: bottom;
-            opacity: .55;
-            filter: drop-shadow(0 0 10px rgba(77, 243, 255, .12));
-            bottom: -30%;
+        /* Top nav */
+        .nav-root {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(255, 255, 255, .7);
+            backdrop-filter: blur(6px);
+            border-bottom: 1px solid rgba(0, 0, 0, .05);
         }
 
-        .bg-palms {
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: var(--leaf-dark);
+            text-decoration: none;
+        }
+
+        .brand .sprout {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Hero */
+        .hero {
+            position: relative;
+            padding: 6rem 0 4rem;
+            overflow: hidden;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1.1fr .9fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 1.15;
+            color: #2d3a33;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #3e4b45;
+        }
+
+        .hero-illustration {
+            position: relative;
+            aspect-ratio: 4/3;
+            border-radius: var(--radius-xl);
+            background: radial-gradient(120% 100% at 15% 10%, #ffffffcc 0%, #ffffffa0 35%, #ffffff60 65%, #ffffff30 100%),
+                linear-gradient(145deg, #eaf4ea, #e8f5f9);
+            box-shadow: var(--paper-shadow);
+            border: 1px solid rgba(25, 60, 40, .08);
+            overflow: hidden;
+        }
+
+        /* Subtle paper grain */
+        .hero-illustration::after {
+            content: "";
             position: absolute;
             inset: 0;
             pointer-events: none;
-            background-repeat: no-repeat;
-            background-position: bottom left, bottom right;
-            background-size: 35% auto, 35% auto;
-            mix-blend-mode: screen;
-            opacity: .35;
+            border-radius: inherit;
+            background-image:
+                radial-gradient(#00000008 1px, transparent 1px),
+                radial-gradient(#00000006 1px, transparent 1px);
+            background-size: 12px 12px, 18px 18px;
+            background-position: 0 0, 6px 6px;
         }
 
-        .bg-palms {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='220' viewBox='0 0 520 220'%3E%3Cg fill='%23ff5e99'%3E%3Cpath d='M55 210c5-35 17-70 39-100 8-11 13-20 10-22-4-3-15 3-27 10-17 9-34 15-42 7-4-4-4-11 0-18 7-11 26-20 46-24 16-3 24-9 21-13-5-8-30-4-49-1-29 5-41-6-35-19 5-10 24-17 47-19 17-1 33 1 40-3 6-4 2-10-7-13-15-5-41-7-41-18 0-9 18-16 43-16 40 0 73 18 82 44 7 19 4 40-9 58-14 20-20 43-22 67-1 12 0 44-2 50H55z'/%3E%3C/g%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='220' viewBox='0 0 520 220'%3E%3Cg fill='%2300fff0'%3E%3Cpath d='M465 210c-5-35-17-70-39-100-8-11-13-20-10-22 4-3 15 3 27 10 17 9 34 15 42 7 4-4 4-11 0-18-7-11-26-20-46-24-16-3-24-9-21-13 5-8 30-4 49-1 29 5 41-6 35-19-5-10-24-17-47-19-17-1-33 1-40-3-6-4-2-10 7-13 15-5 41-7 41-18 0-9-18-16-43-16-40 0-73 18-82 44-7 19-4 40 9 58 14 20 20 43 22 67 1 12 0 44 2 50h64z'/%3E%3C/g%3E%3C/svg%3E");
+        /* Chat bubble with leaves */
+        .chat-leaf {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
         }
 
-        .neon-text {
-            font-family: 'Orbitron', sans-serif;
-            letter-spacing: .5px;
-            color: var(--electric-blue);
-            text-shadow: 0 0 6px rgba(77, 243, 255, .9), 0 0 24px rgba(185, 103, 255, .55);
+        .leaf-sway {
+            transform-origin: bottom center;
+            animation: sway 4.5s ease-in-out infinite;
         }
 
-        .lcd-font {
-            font-family: 'VT323', monospace;
-            font-size: 1.1rem;
-            letter-spacing: .2px
+        @keyframes sway {
+
+            0%,
+            100% {
+                transform: rotate(-2deg) translateY(0)
+            }
+
+            50% {
+                transform: rotate(2.5deg) translateY(-2px)
+            }
         }
 
-        .chat-wrapper {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header {
-            padding: .8rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, .08);
-            backdrop-filter: blur(8px);
-            background: linear-gradient(180deg, rgba(0, 0, 0, .35), rgba(0, 0, 0, .15));
-        }
-
-        .logo-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #fff, var(--neon-pink) 35%, #7b1c5e 60%);
-            box-shadow: 0 0 12px var(--neon-pink), 0 0 28px var(--neon-purple);
-        }
-
-        .switch3d {
+        /* Buttons with ripple */
+        .btn-green {
+            --btn-bg: linear-gradient(180deg, #79b38a, #5a8f6b);
+            --btn-border: #3f6f54;
             position: relative;
-            width: 56px;
-            height: 28px;
-            border-radius: 28px;
-            background: linear-gradient(145deg, #222, #111);
-            box-shadow: inset 2px 2px 4px #0b0b0b, inset -2px -2px 4px #2a2a2a;
-            cursor: pointer
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .9rem 1.25rem;
+            border-radius: 999px;
+            color: #fff;
+            text-decoration: none;
+            font-weight: 700;
+            background: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            box-shadow: 0 8px 20px rgba(63, 111, 84, .18);
         }
 
-        .switch3d::after {
+        .btn-green::before {
+            /* paper texture on hover */
             content: "";
             position: absolute;
-            top: 4px;
-            left: 4px;
-            width: 20px;
-            height: 20px;
+            inset: 0;
+            opacity: 0;
+            transition: opacity .35s ease;
+            pointer-events: none;
+            background-image: radial-gradient(#ffffff20 1px, transparent 1px), radial-gradient(#ffffff14 1px, transparent 1px);
+            background-size: 10px 10px, 16px 16px;
+            background-position: 0 0, 5px 5px;
+        }
+
+        .btn-green:hover::before {
+            opacity: 1;
+        }
+
+        .btn-green .ripple {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #ffffff60;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #eee, #bbb);
-            box-shadow: 2px 2px 4px rgba(0, 0, 0, .7), inset -2px -2px 3px rgba(255, 255, 255, .35);
-            transition: all .25s ease
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple .9s ease-out forwards;
+            pointer-events: none;
         }
 
-        .switch3d.active {
-            background: linear-gradient(145deg, #1c0730, #3a0f6b);
-            box-shadow: inset 2px 2px 6px rgba(0, 0, 0, .6), 0 0 10px var(--neon-purple), 0 0 24px var(--neon-cyan)
+        @keyframes ripple {
+            to {
+                transform: translate(-50%, -50%) scale(18);
+                opacity: 0;
+            }
         }
 
-        .switch3d.active::after {
-            left: 32px;
-            background: radial-gradient(circle at 30% 30%, #fff, #ddd);
-            box-shadow: 0 0 8px var(--neon-cyan), inset -2px -2px 3px rgba(255, 255, 255, .5)
-        }
-
-        .chat-body {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            padding: 1.25rem;
-            position: relative
-        }
-
-        .glass-card {
-            background: var(--glass);
-            border: 1px solid rgba(255, 255, 255, .12);
-            border-radius: 16px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, .35), inset 0 0 24px rgba(255, 255, 255, .03);
-            backdrop-filter: blur(12px)
-        }
-
-        .msg {
-            max-width: 86%;
+        /* Section wrappers */
+        .section {
+            padding: 4.25rem 0;
             position: relative;
-            margin: 1.2rem 0
         }
 
-        .bubble-lcd {
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            color: #2f3a33;
+            margin-bottom: 1rem;
+        }
+
+        .section-sub {
+            color: #4a5a52;
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+        }
+
+        .card-paper {
+            background: #fff;
+            border-radius: var(--radius-lg);
+            padding: 1.2rem;
+            border: 1px solid rgba(35, 40, 30, .08);
+            box-shadow: var(--paper-shadow);
             position: relative;
-            border-radius: 14px;
-            padding: .9rem 1.05rem;
-            color: #d9ffe6;
-            border: 1px solid rgba(0, 255, 200, .32);
-            background:
-                linear-gradient(180deg, rgba(0, 40, 40, .45), rgba(0, 20, 25, .65)),
-                radial-gradient(120% 100% at 10% 5%, rgba(255, 255, 255, .22) 0%, rgba(255, 255, 255, 0) 40%),
-                repeating-linear-gradient(0deg, rgba(0, 255, 200, .06) 0 2px, transparent 2px 4px);
-            box-shadow: inset 0 2px 0 rgba(255, 255, 255, .06), inset 0 -2px 0 rgba(0, 0, 0, .3), 0 6px 18px rgba(0, 0, 0, .35);
+            overflow: hidden;
         }
 
-        .bubble-user {
-            color: #ffe9ff;
-            border-color: rgba(255, 78, 205, .45);
-            background:
-                linear-gradient(180deg, rgba(40, 0, 30, .5), rgba(25, 0, 30, .7)),
-                radial-gradient(120% 100% at 90% 5%, rgba(255, 255, 255, .18) 0%, rgba(255, 255, 255, 0) 42%),
-                repeating-linear-gradient(0deg, rgba(255, 78, 205, .08) 0 2px, transparent 2px 4px);
-            box-shadow: inset 0 2px 0 rgba(255, 255, 255, .06), inset 0 -2px 0 rgba(0, 0, 0, .35), 0 6px 18px rgba(255, 78, 205, .22);
+        .card-paper::after {
+            /* recycled paper dots */
+            content: "";
+            position: absolute;
+            inset: 0;
+            opacity: .45;
+            pointer-events: none;
+            background-image: radial-gradient(#00000004 1px, transparent 1px), radial-gradient(#00000005 1px, transparent 1px);
+            background-size: 14px 14px, 18px 18px;
+            background-position: 0 0, 9px 9px;
+            mix-blend-mode: multiply;
         }
 
-        .msg-time {
-            opacity: .65;
-            font-size: .8rem;
-            font-family: 'Orbitron', sans-serif
+        .icon-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #e5f1e8;
+            color: var(--leaf-dark);
+            box-shadow: inset 0 0 0 1px rgba(60, 95, 70, .2);
+            margin-bottom: .6rem;
+            font-size: 1.25rem;
         }
 
-        .btn-neon {
-            border: none;
-            padding: .55rem 1.2rem;
-            border-radius: 10px;
-            background: linear-gradient(135deg, #2b193f, #0e0a1a);
-            color: #e6e6ff;
-            box-shadow:
-                inset 0 1px 0 rgba(255, 255, 255, .06),
-                0 0 10px rgba(185, 103, 255, .55),
-                0 0 22px rgba(77, 243, 255, .35);
-            border: 1px solid rgba(185, 103, 255, .35);
-            text-shadow: 0 0 6px rgba(77, 243, 255, .55);
+        /* Testimonials */
+        .testimonials {
+            background: linear-gradient(180deg, #f5f1ea, #eef4ef);
+            border-top: 1px solid rgba(0, 0, 0, .06);
+            border-bottom: 1px solid rgba(0, 0, 0, .06);
         }
 
-        .btn-neon:hover {
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 0 12px rgba(185, 103, 255, .8), 0 0 28px rgba(77, 243, 255, .6)
+        .tmn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
         }
 
-        .btn-neon:active {
-            transform: translateY(1px)
+        .tmn {
+            background: #fff;
+            border-radius: var(--radius-xl);
+            padding: 1rem 1.1rem;
+            border: 1px solid rgba(40, 45, 35, .08);
+            box-shadow: var(--paper-shadow);
         }
 
-        .composer {
-            border: 1px solid rgba(255, 255, 255, .18);
-            background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(0, 0, 0, .25));
-            border-radius: 14px;
-            box-shadow: inset 0 0 24px rgba(0, 0, 0, .25)
+        .tmn .who {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            margin-bottom: .35rem;
         }
 
-        textarea.form-control {
-            background: transparent;
-            border: none;
-            color: #e9e9f1;
-            resize: none
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9d9c7;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            color: #5a4636;
+            box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .06);
         }
 
-        textarea.form-control:focus {
-            box-shadow: none
+        .bubble {
+            background: #f3faf5;
+            border-radius: 26px 26px 26px 12px;
+            padding: .8rem 1rem;
+            border: 1px solid rgba(70, 105, 80, .18);
         }
 
-        .message-separator {
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 78, 205, .35), rgba(77, 243, 255, .35), transparent);
-            margin: 1rem 0
+        .bubble.pebble {
+            border-radius: 22px;
+            background: #f7fbff;
+            border-color: rgba(70, 105, 120, .18);
         }
 
-        /* markdown content */
-        .prose {
-            line-height: 1.65
+        /* Vine divider */
+        .vine {
+            height: 14px;
+            position: relative;
+            margin: 1.5rem 0;
         }
 
-        .prose pre {
-            background: rgba(0, 0, 0, .35);
-            border: 1px solid rgba(255, 255, 255, .15);
-            border-left: 3px solid var(--neon-cyan);
-            padding: .75rem .9rem;
-            border-radius: 10px
+        .vine::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 6px;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, transparent, #90be9a, #6aa681, #90be9a, transparent);
         }
 
-        .prose code {
-            background: rgba(255, 255, 255, .08);
-            padding: .15rem .35rem;
-            border-radius: 4px
+        .vine::after {
+            content: "";
+            position: absolute;
+            left: 10%;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 0 12px 12px 12px;
+            background: #6aa681;
+            transform: rotate(35deg);
+            filter: saturate(0.8) brightness(1.05);
+            box-shadow: 180px 2px 0 0 #6aa681, 360px -3px 0 0 #6aa681;
         }
 
-        /* Scrollbars */
-        ::-webkit-scrollbar {
-            width: 10px
+        /* CTA footer */
+        .cta {
+            background: linear-gradient(135deg, var(--forest), var(--wood));
+            color: #eef5ee;
+            border-radius: var(--radius-xl);
+            padding: 2.2rem 1.6rem;
+            position: relative;
+            overflow: hidden;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(var(--neon-purple), var(--neon-pink));
-            border-radius: 20px
+        .cta h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .btn-cream {
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            background: var(--cream);
+            color: #2e3a34;
+            border-radius: 999px;
+            padding: .85rem 1.25rem;
+            font-weight: 700;
+            border: 1px solid rgba(0, 0, 0, .08);
+            box-shadow: 0 10px 24px rgba(255, 255, 255, .12), inset 0 1px 0 #fff;
+        }
+
+        .btn-cream .sprout-mini {
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-cream .ripple {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #3f6f5444;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: ripple .8s ease-out forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .tmn-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 
 <body>
-    <!-- Background layers -->
-    <div class="background-layer">
-        <div class="bg-palms"></div>
-        <div class="bg-grid"></div>
-    </div>
+    <div class="site-wrap">
+        <!-- Nav -->
+        <nav class="nav-root">
+            <div class="container py-3 d-flex align-items-center justify-content-between">
+                <a href="#" class="brand">
+                    <svg class="sprout" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true">
+                        <path d="M12 21c0-4 1-7-2-10" stroke="#3f6f54" stroke-width="1.5" stroke-linecap="round" />
+                        <path d="M10 11c3-1 5-4 5-7-3 0-6 2-7 5" stroke="#5a8f6b" stroke-width="1.5"
+                            stroke-linecap="round" />
+                        <path d="M10 11c-3-1-6-1-8 2 2 1 6 1 8-2Z" fill="#79b38a" />
+                    </svg>
+                    GreenBot
+                </a>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{% url 'chat' %}" class="btn-green btn-ripple">Try the chatbot</a>
+                </div>
+            </div>
+        </nav>
 
-    <div class="chat-wrapper">
-        <!-- Header -->
-        <header class="chat-header">
-            <div class="container">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="logo-dot"></div>
-                    <h1 class="h5 neon-text m-0">VaporWave Travel Assistant</h1>
-                    <div class="ms-auto d-flex align-items-center gap-3">
-                        <span class="small text-uppercase" style="letter-spacing:.15em; opacity:.75">VHS MODE</span>
-                        <div id="vhsSwitch" class="switch3d" onclick="this.classList.toggle('active')"></div>
+        <!-- Hero -->
+        <section class="hero">
+            <div class="container hero-grid">
+                <div>
+                    <h1>Conversations that feel natural.</h1>
+                    <p>Let your ideas take root and grow with the help of our chatbot. Calm, approachable and
+                        human‑centered.</p>
+                    <div class="d-flex align-items-center gap-3 mt-3">
+                        <a href="{% url 'chat' %}" class="btn-green btn-ripple">
+                            <span>Start now</span>
+                        </a>
+                        <small style="color:#51655b">No registration required</small>
+                    </div>
+                    <div class="vine"></div>
+                </div>
+                <div>
+                    <div class="hero-illustration">
+                        <div class="chat-leaf">
+                            <!-- Hand-drawn chat bubble with sprouting leaves -->
+                            <svg viewBox="0 0 420 320" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+                                width="100%" height="100%">
+                                <!-- watercolor wash background -->
+                                <defs>
+                                    <radialGradient id="wash" cx="30%" cy="20%" r="90%">
+                                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                                        <stop offset="60%" stop-color="#def1e5" stop-opacity="0.8" />
+                                        <stop offset="100%" stop-color="#eaf6ff" stop-opacity="0.7" />
+                                    </radialGradient>
+                                </defs>
+                                <rect x="0" y="0" width="420" height="320" fill="url(#wash)" opacity="0.55" />
+                                <!-- bubble -->
+                                <g filter="url(#none)">
+                                    <path
+                                        d="M90 80a40 40 0 0 1 40-40h160a40 40 0 0 1 40 40v70a40 40 0 0 1-40 40H175l-40 30 10-30h-15a40 40 0 0 1-40-40Z"
+                                        fill="#ffffff" stroke="#6a8f7a" stroke-width="2" opacity=".95" />
+                                </g>
+                                <!-- leaves sprouting -->
+                                <g class="leaf-sway">
+                                    <path d="M300 70c18-20 40-25 60-20-2 20-20 38-56 39" fill="#79b38a" />
+                                    <path d="M300 70c-8-18-22-28-38-30-2 16 8 34 34 36" fill="#9fd0a9" />
+                                    <path d="M300 70c-2 18-10 32-22 44" stroke="#3f6f54" stroke-width="2"
+                                        stroke-linecap="round" />
+                                </g>
+                                <!-- tiny birds -->
+                                <path d="M60 55c8-10 14-10 22 0M85 55c8-10 14-10 22 0" stroke="#7aa7bd"
+                                    stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".7" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>
-        </header>
+        </section>
 
-        <!-- Chat body -->
-        <main id="chatBody" class="chat-body">
-            <div class="container glass-card py-3 px-3 px-md-4">
-                <div id="messages" class="d-flex flex-column"></div>
-            </div>
-        </main>
-
-        <!-- Chat footer / input -->
-        <footer class="chat-footer">
+        <!-- Features -->
+        <section class="section">
             <div class="container">
-                <form id="chatForm" class="composer d-flex gap-3 align-items-end p-2 p-md-3">
-                    {% csrf_token %}
-                    <div class="flex-grow-1">
-                        <textarea id="message" class="form-control lcd-font" rows="2"
-                            placeholder="Dime tu destino... (Shift+Enter = salto)" required></textarea>
+                <h2 class="section-title">Growing with you</h2>
+                <p class="section-sub">An organic experience that adapts to your pace.</p>
+                <div class="features mt-4">
+                    <div class="card-paper">
+                        <div class="icon-circle">🌿</div>
+                        <h5 class="mb-1" style="font-family:'Playfair Display',serif">Growth</h5>
+                        <p class="m-0">Learns and adapts with you — ideas take root and evolve with every conversation.
+                        </p>
                     </div>
-                    <button id="sendBtn" type="submit" class="btn btn-neon px-3 px-md-4">Enviar</button>
-                </form>
+                    <div class="card-paper">
+                        <div class="icon-circle">🌊</div>
+                        <h5 class="mb-1" style="font-family:'Playfair Display',serif">Flow</h5>
+                        <p class="m-0">Conversations that feel smooth and natural, like flowing water.</p>
+                    </div>
+                    <div class="card-paper">
+                        <div class="icon-circle">🌞</div>
+                        <h5 class="mb-1" style="font-family:'Playfair Display',serif">Light</h5>
+                        <p class="m-0">Friendly and approachable — clarity and warmth in every response.</p>
+                    </div>
+                </div>
             </div>
-        </footer>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="section testimonials">
+            <div class="container">
+                <h2 class="section-title">Stories that bloom</h2>
+                <p class="section-sub">Real people, simple and useful conversations.</p>
+                <div class="tmn-grid mt-4">
+                    <div class="tmn">
+                        <div class="who">
+                            <div class="avatar">A</div>
+                            <strong>Ana — Designer</strong>
+                        </div>
+                        <div class="bubble">It feels close and human. It helps me organize my ideas without losing my
+                            voice.
+                        </div>
+                    </div>
+                    <div class="tmn">
+                        <div class="who">
+                            <div class="avatar" style="background:#e6e3d8;color:#564b3a">M</div>
+                            <strong>Marcos — Educator</strong>
+                        </div>
+                        <div class="bubble pebble">It’s patient and clear. Conversations flow like a pleasant walk.
+                        </div>
+                    </div>
+                    <div class="tmn">
+                        <div class="who">
+                            <div class="avatar" style="background:#f0e0cf;color:#5a4636">L</div>
+                            <strong>Luz — Entrepreneur</strong>
+                        </div>
+                        <div class="bubble">Nothing robotic. You notice the friendly touch from the first message.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Footer -->
+        <section class="section">
+            <div class="container">
+                <div class="cta">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-8">
+                            <h3 class="mb-1">Ready to start a natural conversation?</h3>
+                            <p class="mb-0" style="opacity:.9">Try a calm and honest chat — no complications.</p>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="{% url 'chat' %}" class="btn-cream btn-ripple">
+                                <svg class="sprout-mini" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M12 21c0-4 1-7-2-10" stroke="#3f6f54" stroke-width="1.5"
+                                        stroke-linecap="round" />
+                                    <path d="M10 11c3-1 5-4 5-7-3 0-6 2-7 5" stroke="#5a8f6b" stroke-width="1.5"
+                                        stroke-linecap="round" />
+                                    <path d="M10 11c-3-1-6-1-8 2 2 1 6 1 8-2Z" fill="#79b38a" />
+                                </svg>
+                                <span>Start now</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap JS (optional) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
-        // Configurar marked con highlight.js
-        marked.setOptions({
-            highlight: function (code, lang) {
-                try {
-                    if (lang && hljs.getLanguage(lang)) {
-                        return hljs.highlight(code, { language: lang }).value;
-                    }
-                    return hljs.highlightAuto(code).value;
-                } catch (e) {
-                    return code;
-                }
-            }
-        });
-
-        const form = document.getElementById('chatForm');
-        const messages = document.getElementById('messages');
-        const input = document.getElementById('message');
-        const sendBtn = document.getElementById('sendBtn');
-
-        // Añadir mensaje de bienvenida
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                appendAssistantMessageMarkdown("## Bienvenido al VaporWave Travel Assistant\n\nPide recomendaciones de hoteles, rutas y destinos con estilo retro ✨\n\n- Hoteles y barrios\n- Itinerarios\n- Consejos locales\n- Presupuesto y transporte");
-            }, 300);
-        });
-
-        function nowTime() {
-            const d = new Date();
-            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function appendUserMessage(text) {
-            // Añadir separador si hay mensajes previos
-            if (messages.children.length > 0) {
-                const separator = document.createElement('div');
-                separator.className = 'message-separator';
-                messages.appendChild(separator);
-            }
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'd-flex';
-            const bubble = document.createElement('div');
-            bubble.className = 'msg bubble-lcd bubble-user';
-            bubble.textContent = text;
-            const time = document.createElement('div');
-            time.className = 'text-end msg-time';
-            time.textContent = nowTime();
-            wrapper.appendChild(bubble);
-            const container = document.createElement('div');
-            container.className = 'd-flex flex-column align-items-end';
-            container.appendChild(wrapper);
-            container.appendChild(time);
-            messages.appendChild(container);
-        }
-
-        function appendAssistantMessageMarkdown(markdownText) {
-            // Añadir separador si hay mensajes previos
-            if (messages.children.length > 0) {
-                const separator = document.createElement('div');
-                separator.className = 'message-separator';
-                messages.appendChild(separator);
-            }
-
-            const wrapper = document.createElement('div');
-            wrapper.className = 'd-flex';
-            const bubble = document.createElement('div');
-            bubble.className = 'msg bubble-lcd prose';
-            // parse + sanitize markdown
-            const html = DOMPurify.sanitize(marked.parse(markdownText || ''));
-            bubble.innerHTML = html;
-            const time = document.createElement('div');
-            time.className = 'msg-time';
-            time.textContent = nowTime();
-            const container = document.createElement('div');
-            container.className = 'd-flex flex-column';
-            container.appendChild(wrapper);
-            container.appendChild(time);
-            wrapper.appendChild(bubble);
-            messages.appendChild(container);
-            // resaltar bloques de código agregados
-            document.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
-        }
-
-        function appendAssistantTyping() {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'd-flex';
-            const bubble = document.createElement('div');
-            bubble.className = 'msg bubble-lcd';
-
-            // Indicador de escritura con puntos animados
-            const typingIndicator = document.createElement('div');
-            typingIndicator.className = 'typing-indicator';
-            typingIndicator.innerHTML = 'Pensando<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
-
-            bubble.appendChild(typingIndicator);
-            wrapper.appendChild(bubble);
-            messages.appendChild(wrapper);
-
-            // Animación de los puntos
-            let dots = bubble.querySelectorAll('.dot');
-            let i = 0;
-            const animateDots = setInterval(() => {
-                dots.forEach(dot => dot.style.opacity = '0.2');
-                dots[i % 3].style.opacity = '1';
-                i++;
-            }, 300);
-
-            // Guardar el intervalo para limpiarlo después
-            bubble.animationInterval = animateDots;
-
-            return bubble;
-        }
-
-        function scrollToBottom() {
-            const body = document.getElementById('chatBody');
-            body.scrollTop = body.scrollHeight;
-        }
-
-        // Enviar con Enter, salto de línea con Shift+Enter
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                form.requestSubmit();
-            }
-        });
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            // pinta el mensaje del usuario
-            appendUserMessage(msg);
-            input.value = '';
-            input.focus();
-            const typingBubble = appendAssistantTyping();
-            scrollToBottom();
-
-            // preparar petición
-            sendBtn.disabled = true;
-            const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
-
-            try {
-                const res = await fetch('/api/chatbot/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(csrf ? { 'X-CSRFToken': csrf } : {})
-                    },
-                    body: JSON.stringify({ message: msg })
+        // Water ripple on hover (tracks cursor to place the ripple)
+        function attachRipples(selector) {
+            document.querySelectorAll(selector).forEach(btn => {
+                btn.addEventListener('mouseenter', e => {
+                    const r = document.createElement('span');
+                    r.className = 'ripple';
+                    const rect = btn.getBoundingClientRect();
+                    r.style.left = (e.clientX - rect.left) + 'px';
+                    r.style.top = (e.clientY - rect.top) + 'px';
+                    btn.appendChild(r);
+                    r.addEventListener('animationend', () => r.remove());
                 });
-
-                if (!res.ok) throw new Error('Error en la solicitud');
-                const data = await res.json();
-                const reply = typeof data.reply === 'string' ? data.reply : JSON.stringify(data);
-
-                // Detener la animación
-                if (typingBubble.animationInterval) {
-                    clearInterval(typingBubble.animationInterval);
-                }
-
-                // Eliminar la burbuja de escritura
-                typingBubble.parentNode.remove();
-
-                // Añadir la respuesta real como un nuevo mensaje
-                appendAssistantMessageMarkdown(reply);
-
-            } catch (err) {
-                // Detener la animación
-                if (typingBubble.animationInterval) {
-                    clearInterval(typingBubble.animationInterval);
-                }
-
-                typingBubble.innerHTML = '⚠️ Error obteniendo respuesta. Por favor, intenta nuevamente.';
-            } finally {
-                sendBtn.disabled = false;
-                scrollToBottom();
-            }
-        });
+            });
+        }
+        attachRipples('.btn-ripple');
     </script>
 </body>
 
