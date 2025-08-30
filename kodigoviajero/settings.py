@@ -47,7 +47,8 @@ if not SERPI_TOKEN:
 SECRET_KEY = os.getenv(
     'SECRET_KEY', 'django-insecure-c9w-zrdwc-fle*em)8(nta@061z-j3y#80q5q-97co0qp_y_82')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["kodigoviajero.onrender.com"]
+
 
 
 # Application definition
@@ -139,6 +140,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
